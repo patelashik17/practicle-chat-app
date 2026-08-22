@@ -1,7 +1,12 @@
 import { Request, Response, Router } from "express";
 import { AuthenticatedRequest, authenticate } from "../middleware/auth.middleware";
-import { validateBody, validateParams } from "../middleware/validate";
-import { createRoomSchema, roomIdParamSchema } from "../schemas/room.schema";
+import { validateBody, validateParams, validateQuery } from "../middleware/validate";
+import {
+  createRoomSchema,
+  roomIdParamSchema,
+  roomMessagesQuerySchema,
+  RoomMessagesQuery,
+} from "../schemas/room.schema";
 import {
   archiveRoom,
   createRoom,
@@ -49,11 +54,15 @@ router.get("/", async (_req: Request, res: Response) => {
 router.get(
   "/:id",
   validateParams(roomIdParamSchema),
+  validateQuery(roomMessagesQuerySchema),
   async (req: Request, res: Response) => {
     const { id } = req.params as { id: string };
+    const { validatedQuery } = req as Request & {
+      validatedQuery: RoomMessagesQuery;
+    };
 
     try {
-      const room = await getRoomById(id);
+      const room = await getRoomById(id, validatedQuery);
       res.status(200).json(room);
     } catch (error) {
       if (error instanceof RoomError) {

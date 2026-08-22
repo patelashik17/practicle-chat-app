@@ -31,6 +31,15 @@ export interface RoomOnlineUser {
   name: string;
 }
 
+export interface MessagePagination {
+  page: number;
+  pageSize: number;
+  totalMessages: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
 export interface RoomDetail {
   id: string;
   name: string;
@@ -42,6 +51,7 @@ export interface RoomDetail {
   messageCount: number;
   messages: RoomMessageItem[];
   onlineUsers: RoomOnlineUser[];
+  pagination: MessagePagination;
 }
 
 export interface ArchivedRoom {

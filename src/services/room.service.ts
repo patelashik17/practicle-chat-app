@@ -9,7 +9,9 @@ import {
   RoomDetail,
   RoomListItem,
 } from "../types/room";
-import { CreateRoomInput } from "../schemas/room.schema";
+import { CreateRoomInput, RoomMessagesQuery } from "../schemas/room.schema";
+
+export const MESSAGES_PAGE_SIZE = 50;
 
 export class RoomError extends Error {
   constructor(
@@ -84,7 +86,12 @@ export async function listActiveRooms(): Promise<RoomListItem[]> {
   }));
 }
 
-export async function getRoomById(roomId: string): Promise<RoomDetail> {
+export async function getRoomById(
+  roomId: string,
+  query: RoomMessagesQuery = { page: 1 }
+): Promise<RoomDetail> {
+  const { page } = query;
+
   const room = await prisma.room.findUnique({
     where: { id: roomId },
     include: {
@@ -101,10 +108,21 @@ export async function getRoomById(roomId: string): Promise<RoomDetail> {
     throw new RoomError("Room not found", 404);
   }
 
-  const recentMessages = await prisma.message.findMany({
+  const totalMessages = room._count.messages;
+  const totalPages =
+    totalMessages === 0
+      ? 0
+      : Math.ceil(totalMessages / MESSAGES_PAGE_SIZE);
+
+  if (page > 1 && (totalMessages === 0 || page > totalPages)) {
+    throw new RoomError(`Page ${page} does not exist`, 404);
+  }
+
+  const messages = await prisma.message.findMany({
     where: { roomId },
-    orderBy: { createdAt: "desc" },
-    take: 50,
+    orderBy: { createdAt: "asc" },
+    skip: (page - 1) * MESSAGES_PAGE_SIZE,
+    take: MESSAGES_PAGE_SIZE,
     include: {
       user: {
         select: { id: true, name: true },
@@ -130,14 +148,22 @@ export async function getRoomById(roomId: string): Promise<RoomDetail> {
     createdAt: room.createdAt,
     lastActivityAt: room.lastActivityAt,
     owner: room.owner,
-    messageCount: room._count.messages,
-    messages: recentMessages.reverse().map((message) => ({
+    messageCount: totalMessages,
+    messages: messages.map((message) => ({
       id: message.id,
       content: message.content,
       createdAt: message.createdAt,
       user: message.user,
     })),
     onlineUsers,
+    pagination: {
+      page,
+      pageSize: MESSAGES_PAGE_SIZE,
+      totalMessages,
+      totalPages,
+      hasNextPage: totalPages > 0 && page < totalPages,
+      hasPreviousPage: page > 1,
+    },
   };
 }
 

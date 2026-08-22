@@ -133,7 +133,7 @@ Protected routes require header: `Authorization: Bearer <token>`
 | ------ | -------------- | ------------- | ----------- |
 | POST   | `/rooms`       | Authenticated | Create a room. Creator becomes owner. |
 | GET    | `/rooms`       | Authenticated | List active rooms with message and online counts. |
-| GET    | `/rooms/:id`   | Authenticated | Room details, last 50 messages, online users. |
+| GET    | `/rooms/:id`   | Authenticated | Room details, paginated messages, online users. |
 | DELETE | `/rooms/:id`   | Owner only    | Archive the room (soft delete). |
 
 **Create room request body:**
@@ -147,7 +147,24 @@ Protected routes require header: `Authorization: Bearer <token>`
 
 **List rooms response** includes `messageCount` (PostgreSQL) and `onlineUserCount` (Redis).
 
-**Room detail response** includes the last 50 messages (oldest first) and current online users from Redis.
+**Room detail response** includes paginated messages (50 per page, oldest first) and current online users from Redis.
+
+**Pagination query param:** `GET /rooms/:id?page=1` (default `page=1`)
+
+```json
+{
+  "id": "uuid",
+  "messages": [],
+  "pagination": {
+    "page": 1,
+    "pageSize": 50,
+    "totalMessages": 120,
+    "totalPages": 3,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  }
+}
+```
 
 ### Admin
 

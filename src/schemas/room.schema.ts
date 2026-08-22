@@ -9,4 +9,9 @@ export const roomIdParamSchema = z.object({
   id: z.string().uuid("Invalid room id"),
 });
 
+export const roomMessagesQuerySchema = z.object({
+  page: z.coerce.number().int().min(1, "Page must be at least 1").default(1),
+});
+
 export type CreateRoomInput = z.infer<typeof createRoomSchema>;
+export type RoomMessagesQuery = z.infer<typeof roomMessagesQuerySchema>;
