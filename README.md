@@ -149,9 +149,35 @@ Protected routes require header: `Authorization: Bearer <token>`
 
 **Room detail response** includes the last 50 messages (oldest first) and current online users from Redis.
 
-### Admin (coming next)
+### Admin
 
-- **Admin:** `GET /admin/archival-history`
+| Method | Endpoint                   | Access        | Description |
+| ------ | -------------------------- | ------------- | ----------- |
+| GET    | `/admin/archival-history`  | Authenticated | Last 10 room archival job runs. |
+
+**Archival history response:**
+
+```json
+{
+  "history": [
+    {
+      "id": "uuid",
+      "runDate": "2026-08-22",
+      "roomsArchived": ["room-id-1", "room-id-2"],
+      "roomsArchivedCount": 2,
+      "createdAt": "2026-08-22T00:00:05.000Z"
+    }
+  ]
+}
+```
+
+## Room Archival Job
+
+A BullMQ worker on queue `room-archival` runs daily at **midnight UTC**.
+
+- Archives active rooms with `lastActivityAt` older than 30 days
+- Idempotent via unique `runDate` on `ArchivalLog` — a second run the same day is skipped
+- Logs how many rooms were archived and their IDs
 
 ## Redis Presence
 
