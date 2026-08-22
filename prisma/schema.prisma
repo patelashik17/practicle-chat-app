@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoomStatus {
+  active
+  archived
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+
+  ownedRooms   Room[]           @relation("RoomOwner")
+  messages     Message[]
+  memberships  RoomMembership[]
+}
+
+model Room {
+  id             String     @id @default(uuid())
+  name           String
+  description    String
+  ownerId        String
+  status         RoomStatus @default(active)
+  createdAt      DateTime   @default(now())
+  lastActivityAt DateTime   @default(now())
+
+  owner       User             @relation("RoomOwner", fields: [ownerId], references: [id])
+  messages    Message[]
+  memberships RoomMembership[]
+
+  @@index([status])
+  @@index([lastActivityAt])
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  roomId    String
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([roomId, createdAt])
+}
+
+model RoomMembership {
+  id       String   @id @default(uuid())
+  roomId   String
+  userId   String
+  joinedAt DateTime @default(now())
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([roomId, userId])
+}
+
+model ArchivalLog {
+  id             String   @id @default(uuid())
+  runDate        DateTime @unique @db.Date
+  roomsArchived  String[]
+  createdAt      DateTime @default(now())
+}
