@@ -127,11 +127,39 @@ prisma/
 
 Protected routes require header: `Authorization: Bearer <token>`
 
-### Rooms (coming next)
+### Rooms
 
-- **Rooms:** `POST /rooms`, `GET /rooms`, `GET /rooms/:id`, `DELETE /rooms/:id`
+| Method | Endpoint       | Access        | Description |
+| ------ | -------------- | ------------- | ----------- |
+| POST   | `/rooms`       | Authenticated | Create a room. Creator becomes owner. |
+| GET    | `/rooms`       | Authenticated | List active rooms with message and online counts. |
+| GET    | `/rooms/:id`   | Authenticated | Room details, last 50 messages, online users. |
+| DELETE | `/rooms/:id`   | Owner only    | Archive the room (soft delete). |
+
+**Create room request body:**
+
+```json
+{
+  "name": "Engineering Standup",
+  "description": "Daily sync for the backend team"
+}
+```
+
+**List rooms response** includes `messageCount` (PostgreSQL) and `onlineUserCount` (Redis).
+
+**Room detail response** includes the last 50 messages (oldest first) and current online users from Redis.
+
+### Admin (coming next)
+
 - **Admin:** `GET /admin/archival-history`
 
-## License
+## Redis Presence
+
+Online presence is tracked in Redis (not PostgreSQL):
+
+- `presence:room:{roomId}` — SET of user IDs currently in the room
+- `presence:user:{userId}` — SET of room IDs the user is in (enables fast cleanup on disconnect)
+
+REST endpoints read live counts from Redis. Socket.io handlers (next step) will write to these keys.
 
 ISC
