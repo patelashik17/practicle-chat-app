@@ -93,9 +93,42 @@ prisma/
 
 ## API Overview
 
-> Endpoints will be documented as modules are implemented.
+### Auth
 
-- **Auth:** `POST /auth/register`, `POST /auth/login`
+| Method | Endpoint         | Access | Description                    |
+| ------ | ---------------- | ------ | ------------------------------ |
+| POST   | `/auth/register` | Public | Register with name, email, password. Returns JWT. |
+| POST   | `/auth/login`    | Public | Login with email and password. Returns JWT. |
+
+**Register / Login request body:**
+
+```json
+{
+  "name": "Ashik Patel",
+  "email": "ashik@example.com",
+  "password": "securepass123"
+}
+```
+
+(`name` is only required for register)
+
+**Response:**
+
+```json
+{
+  "token": "<jwt>",
+  "user": {
+    "id": "uuid",
+    "name": "Ashik Patel",
+    "email": "ashik@example.com"
+  }
+}
+```
+
+Protected routes require header: `Authorization: Bearer <token>`
+
+### Rooms (coming next)
+
 - **Rooms:** `POST /rooms`, `GET /rooms`, `GET /rooms/:id`, `DELETE /rooms/:id`
 - **Admin:** `GET /admin/archival-history`
 
