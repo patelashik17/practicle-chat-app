@@ -160,6 +160,34 @@ Online presence is tracked in Redis (not PostgreSQL):
 - `presence:room:{roomId}` — SET of user IDs currently in the room
 - `presence:user:{userId}` — SET of room IDs the user is in (enables fast cleanup on disconnect)
 
-REST endpoints read live counts from Redis. Socket.io handlers (next step) will write to these keys.
+REST endpoints read live counts from Redis. Socket.io join/leave handlers write to these keys.
+
+## Socket.io
+
+Connect with JWT in the handshake `auth` object:
+
+```javascript
+const socket = io("http://localhost:3000", {
+  auth: { token: "<jwt>" },
+});
+```
+
+Connections without a valid JWT are rejected at handshake.
+
+| Event | Direction | Description |
+| ----- | --------- | ----------- |
+| `room:join` | Client → Server | Join a room. Updates Redis presence and broadcasts `room:user-joined`. |
+| `room:leave` | Client → Server | Leave a room. Updates Redis and broadcasts `room:user-left`. |
+| `room:user-joined` | Server → Client | `{ roomId, user: { id, name } }` |
+| `room:user-left` | Server → Client | `{ roomId, userId }` |
+| `socket:error` | Server → Client | `{ message }` validation or business errors |
+
+**Join / leave payload:**
+
+```json
+{ "roomId": "uuid" }
+```
+
+## License
 
 ISC
