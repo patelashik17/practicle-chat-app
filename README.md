@@ -71,6 +71,7 @@ npm run dev
 | `npm run build`      | Compile TypeScript             |
 | `npm run start`      | Run compiled production build  |
 | `npm run typecheck`  | Type-check without emitting    |
+| `npm test`           | Run Jest tests                 |
 | `npm run db:generate`| Generate Prisma client         |
 | `npm run db:migrate` | Run Prisma migrations          |
 
@@ -242,6 +243,23 @@ Connections without a valid JWT are rejected at handshake.
 ```
 
 **Disconnect cleanup:** On unexpected disconnect, the server reads `presence:user:{userId}` from Redis, removes the user from all room sets, and broadcasts `room:user-left` to each affected room.
+
+## Testing
+
+```bash
+npm test
+```
+
+Socket.io handshake tests verify that connections without a valid JWT are rejected before any room events are handled.
+
+## CI
+
+GitHub Actions runs on every push:
+
+- `npm run typecheck` (`tsc --noEmit`)
+- `npm test`
+
+Workflow file: `.github/workflows/ci.yml`
 
 ## License
 
