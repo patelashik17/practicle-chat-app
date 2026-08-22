@@ -178,8 +178,12 @@ Connections without a valid JWT are rejected at handshake.
 | ----- | --------- | ----------- |
 | `room:join` | Client → Server | Join a room. Updates Redis presence and broadcasts `room:user-joined`. |
 | `room:leave` | Client → Server | Leave a room. Updates Redis and broadcasts `room:user-left`. |
+| `room:message` | Client → Server | Send a message. Saved to DB; broadcasts `room:new-message`. |
+| `room:typing` | Client → Server | Typing indicator. Broadcasts `room:typing-indicator` to others only. |
 | `room:user-joined` | Server → Client | `{ roomId, user: { id, name } }` |
 | `room:user-left` | Server → Client | `{ roomId, userId }` |
+| `room:new-message` | Server → Client | `{ id, roomId, content, createdAt, user }` |
+| `room:typing-indicator` | Server → Client | `{ roomId, user: { id, name } }` |
 | `socket:error` | Server → Client | `{ message }` validation or business errors |
 
 **Join / leave payload:**
@@ -187,6 +191,14 @@ Connections without a valid JWT are rejected at handshake.
 ```json
 { "roomId": "uuid" }
 ```
+
+**Message payload:**
+
+```json
+{ "roomId": "uuid", "content": "Hello team" }
+```
+
+**Disconnect cleanup:** On unexpected disconnect, the server reads `presence:user:{userId}` from Redis, removes the user from all room sets, and broadcasts `room:user-left` to each affected room.
 
 ## License
 

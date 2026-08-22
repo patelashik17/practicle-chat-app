@@ -4,6 +4,7 @@ import { roomEventSchema } from "../schemas/socket.schema";
 import {
   addUserToRoom,
   removeUserFromRoom,
+  removeUserFromAllRooms,
 } from "../services/presence.service";
 import { assertActiveRoom, RoomError } from "../services/room.service";
 import {
@@ -91,6 +92,23 @@ export function registerRoomHandlers(io: AppServer, socket: AppSocket): void {
       });
     } catch {
       emitSocketError(socket, "Failed to leave room");
+    }
+  });
+
+  socket.on("disconnect", async () => {
+    const { userId } = socket.data.user;
+
+    try {
+      const roomIds = await removeUserFromAllRooms(userId);
+
+      for (const roomId of roomIds) {
+        io.to(roomId).emit("room:user-left", {
+          roomId,
+          userId,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to clean up presence on disconnect:", error);
     }
   });
 }

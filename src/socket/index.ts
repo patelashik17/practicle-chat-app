@@ -1,6 +1,7 @@
 import { Server as HttpServer } from "http";
 import { Server } from "socket.io";
 import { socketAuthMiddleware } from "./auth.middleware";
+import { registerMessageHandlers } from "./message.handlers";
 import { registerRoomHandlers } from "./room.handlers";
 import {
   ClientToServerEvents,
@@ -27,6 +28,7 @@ export function initSocket(httpServer: HttpServer): AppSocketServer {
 
   io.on("connection", (socket) => {
     registerRoomHandlers(io, socket);
+    registerMessageHandlers(io, socket);
   });
 
   return io;
