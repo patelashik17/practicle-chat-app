@@ -63,6 +63,8 @@ npm run db:migrate
 npm run dev
 ```
 
+7. Test the API using cURL or Postman — see **[API-CURL.md](./API-CURL.md)** for every endpoint with copy-paste cURL commands.
+
 ## Scripts
 
 | Command              | Description                    |
